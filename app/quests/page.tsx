@@ -71,7 +71,7 @@ export default function QuestsPage() {
                     quest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
                     'bg-red-500/20 text-red-400 border-red-500/50'
                   } border`}>
-                    {quest.difficulty}/10
+                    {quest.difficulty}/5
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-black text-emerald-400">{quest.reward}</div>

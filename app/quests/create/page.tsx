@@ -31,7 +31,7 @@ export default function CreateQuestPage() {
       return;
     }
 
-    if (difficulty < 1 || difficulty > 10 || reward < 10) {
+    if (difficulty < 1 || difficulty > 5 || reward < 10) {
       alert('Сложность 1-10, награда минимум 10');
       return;
     }
@@ -118,7 +118,7 @@ export default function CreateQuestPage() {
                 <input
                   type="range"
                   min="1"
-                  max="10"
+                  max="5"
                   defaultValue="5"
                   onInput={syncSlider} // ✅ Теперь работает!
                   className="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400"
@@ -127,7 +127,7 @@ export default function CreateQuestPage() {
                   name="difficulty"
                   type="number"
                   min="1"
-                  max="10"
+                  max="5"
                   placeholder="5"
                   className="w-full rounded-xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-center text-lg font-mono text-purple-400 focus:border-purple-400"
                   required
@@ -146,7 +146,7 @@ export default function CreateQuestPage() {
                   type="number"
                   min="10"
                   max="1000"
-                  placeholder="100"
+                  placeholder="50"
                   className="flex-1 rounded-xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-lg font-mono text-emerald-400 focus:border-emerald-400"
                   required
                 />

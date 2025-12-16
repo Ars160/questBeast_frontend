@@ -5,6 +5,7 @@ import { useQuery } from '@apollo/client/react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSubscription } from '@apollo/client/react';
 import { QUEST_QUERY } from '@/features/quests/api/quest.query';
+import { ME_QUERY } from '@/features/auth/api/me.query'; // ← ДОБАВЬ
 import { NEW_SUBMISSION_SUBSCRIPTION } from '@/features/submissions/api/newSubmission.subscription';
 import SubmissionForm from '@/features/submissions/SubmissionForm';
 import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm';
@@ -22,6 +23,7 @@ type Quest = {
   submissions: Submission[];
 };
 type QuestQueryResponse = { quest: Quest };
+type MeQueryResponse = { me: User | null }; // ← ДОБАВЬ
 type SubscriptionData = { newSubmission: Submission };
 
 export default function QuestPage() {
@@ -29,15 +31,18 @@ export default function QuestPage() {
   const params = useParams();
   const questId = params.id as string;
 
-  const { data, loading, error, refetch } = useQuery<QuestQueryResponse>(QUEST_QUERY, {
+  const { data: questData, loading, error, refetch } = useQuery<QuestQueryResponse>(QUEST_QUERY, {
     variables: { id: questId },
   });
 
+  // ✅ ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
+  const { data: meData } = useQuery<MeQueryResponse>(ME_QUERY);
+
   // ✅ LIVE SUBSCRIPTION
   const { data: subData } = useSubscription<SubscriptionData>(NEW_SUBMISSION_SUBSCRIPTION, {
-  variables: { questId },
-  skip: !questId,
-});
+    variables: { questId },
+    skip: !questId,
+  });
 
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
@@ -67,13 +72,17 @@ export default function QuestPage() {
     </div>
   );
   
-  if (!data?.quest) return (
+  if (!questData?.quest) return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
       <div className="text-slate-400 text-xl">Квест не найден в архивах...</div>
     </div>
   );
 
-  const { quest } = data;
+  const { quest } = questData;
+  const currentUser = meData?.me;
+
+  // ✅ ПРОВЕРКА ВЛАДЕЛЬЦА
+  const isOwner = currentUser?.id === quest.creator.id;
 
   // Приведение всех ID к строке
   const safeQuest = {
@@ -118,9 +127,9 @@ export default function QuestPage() {
               <div className={`px-4 py-2 rounded-xl font-mono font-bold ${
                 safeQuest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
                 safeQuest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' :
-                'bg-red-500/20 text-red-400 border-red-500/40'
+                'bg-red-500/20 text-red-400 border-red-500/50'
               } border`}>
-                Сложность {safeQuest.difficulty}/10
+                Сложность {safeQuest.difficulty}/5
               </div>
               <div className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-xl font-mono font-bold border border-emerald-500/40">
                 Награда {safeQuest.reward} XP
@@ -135,7 +144,7 @@ export default function QuestPage() {
             </div>
           </div>
           
-          {/* Кнопки действий */}
+          {/* КНОПКИ ДЕЙСТВИЙ — ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА */}
           <div className="space-y-4">
             <button
               onClick={() => setShowSubmissionForm((prev) => !prev)}
@@ -143,12 +152,16 @@ export default function QuestPage() {
             >
               {showSubmissionForm ? '❌ Закрыть форму' : '⚔️ Принять вызов'}
             </button>
-            <button
-              onClick={() => router.push(`/quests/${safeQuest.id}/edit`)}
-              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-slate-950 px-6 py-4 rounded-2xl font-bold shadow-[0_0_25px_rgba(168,85,247,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.8)] transition-all duration-300"
-            >
-              ✏️ Редактировать
-            </button>
+            
+            {/* ✅ КНОПКА ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА */}
+            {isOwner && (
+              <button
+                onClick={() => router.push(`/quests/${safeQuest.id}/edit`)}
+                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-slate-950 px-6 py-4 rounded-2xl font-bold shadow-[0_0_25px_rgba(168,85,247,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.8)] transition-all duration-300"
+              >
+                ✏️ Редактировать (твой)
+              </button>
+            )}
           </div>
         </div>
 
@@ -194,7 +207,7 @@ export default function QuestPage() {
                       sub.grade >= 5 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
                       'bg-red-500/20 text-red-400 border-red-500/50'
                     } border`}>
-                      {sub.grade}/10
+                      {sub.grade}/5
                     </div>
                   </div>
                   
