@@ -5,6 +5,7 @@ import { LEADERBOARD_QUERY } from '@/features/users/api/leaderboard.query';
 import { LEADERBOARD_SUBSCRIPTION } from '@/features/leaderboard/api/leaderboard.subscription';
 
 type User = { id: string; name: string };
+
 type LeaderboardItem = {
   id: string;
   user: User;
@@ -12,36 +13,49 @@ type LeaderboardItem = {
   rank: number;
   period: string;
 };
+
 type LeaderboardResponse = { leaderboard: LeaderboardItem[] };
+type LeaderboardUpdatedPayload = { leaderboardUpdated: boolean };
 
 export default function LeaderboardPage() {
-  // Получаем изначальные данные через query
-  const { data, loading, error } = useQuery<LeaderboardResponse>(LEADERBOARD_QUERY);
+  // Основной запрос
+  const { data, loading, error, refetch } = useQuery<LeaderboardResponse>(LEADERBOARD_QUERY);
 
-  // Подписка на обновления в реальном времени
-  const { data: subscriptionData } = useSubscription<{ leaderboardUpdated: LeaderboardItem[] }>(
+  // Подписка — только триггер, без данных
+  const { data: subscriptionData } = useSubscription<LeaderboardUpdatedPayload>(
     LEADERBOARD_SUBSCRIPTION
   );
 
-  const leaderboard = subscriptionData?.leaderboardUpdated || data?.leaderboard || [];
+  // Когда пришёл сигнал — обновляем данные
+  if (subscriptionData?.leaderboardUpdated) {
+    refetch();
+  }
 
-  if (loading && !subscriptionData) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="text-emerald-400 animate-pulse text-xl">Загрузка таблицы лидеров...</div>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="text-red-400 text-lg">Ошибка: {error.message}</div>
-    </div>
-  );
-  
-  if (leaderboard.length === 0) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="text-slate-400 text-lg">🏆 Лидеров пока нет — будь первым!</div>
-    </div>
-  );
+  const leaderboard = data?.leaderboard || [];
+
+  if (loading && !data) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="text-emerald-400 animate-pulse text-xl">Загрузка таблицы лидеров...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="text-red-400 text-lg">Ошибка: {error.message}</div>
+      </div>
+    );
+  }
+
+  if (leaderboard.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="text-slate-400 text-lg">🏆 Лидеров пока нет — будь первым!</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 py-12 px-4">
@@ -57,7 +71,13 @@ export default function LeaderboardPage() {
           <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-slate-100 via-emerald-300 to-emerald-500 bg-clip-text text-transparent">
             Таблица Лидеров
           </h1>
-          <p className="mt-2 text-lg text-slate-400">Live обновления • QuestBeast Arena</p>
+          <p className="mt-2 text-lg text-slate-400 flex items-center justify-center gap-2">
+            <span>Live обновления • QuestBeast Arena</span>
+            <span className="flex items-center gap-1 text-emerald-400 text-xs">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              LIVE
+            </span>
+          </p>
         </div>
 
         {/* Таблица лидеров */}
@@ -82,24 +102,36 @@ export default function LeaderboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {leaderboard.map((item, index) => (
-                  <tr 
-                    key={item.id} 
+                  <tr
+                    key={item.id}
                     className={`group hover:bg-slate-800/50 transition-all duration-200 ${
                       index === 0 ? 'bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 border-emerald-500/50' : ''
                     }`}
                   >
                     <td className="px-6 py-5">
-                      <div className={`flex items-center gap-2 font-black text-xl ${
-                        index === 0 ? 'text-emerald-400 drop-shadow-lg' : 'text-slate-400'
-                      }`}>
-                        {index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${item.rank}`}
+                      <div
+                        className={`flex items-center gap-2 font-black text-xl ${
+                          index === 0 ? 'text-emerald-400 drop-shadow-lg' : 'text-slate-400'
+                        }`}
+                      >
+                        {index === 0
+                          ? '👑'
+                          : index === 1
+                          ? '🥈'
+                          : index === 2
+                          ? '🥉'
+                          : `#${item.rank}`}
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl bg-gradient-to-r ${
-                          index === 0 ? 'from-emerald-500/30 to-emerald-400/30' : 'from-slate-700/50 to-slate-600/50'
-                        } flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform`}>
+                        <div
+                          className={`w-10 h-10 rounded-2xl bg-gradient-to-r ${
+                            index === 0
+                              ? 'from-emerald-500/30 to-emerald-400/30'
+                              : 'from-slate-700/50 to-slate-600/50'
+                          } flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform`}
+                        >
                           <span className="text-sm font-bold">⚔️</span>
                         </div>
                         <span className="font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">

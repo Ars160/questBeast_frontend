@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSubscription } from '@apollo/client/react';
 import { QUEST_QUERY } from '@/features/quests/api/quest.query';
+import { NEW_SUBMISSION_SUBSCRIPTION } from '@/features/submissions/api/newSubmission.subscription';
 import SubmissionForm from '@/features/submissions/SubmissionForm';
 import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm';
 
@@ -20,6 +22,7 @@ type Quest = {
   submissions: Submission[];
 };
 type QuestQueryResponse = { quest: Quest };
+type SubscriptionData = { newSubmission: Submission };
 
 export default function QuestPage() {
   const router = useRouter();
@@ -30,7 +33,21 @@ export default function QuestPage() {
     variables: { id: questId },
   });
 
+  // ✅ LIVE SUBSCRIPTION
+  const { data: subData } = useSubscription<SubscriptionData>(NEW_SUBMISSION_SUBSCRIPTION, {
+  variables: { questId },
+  skip: !questId,
+});
+
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+
+  // ✅ Автообновление при новом submission
+  useEffect(() => {
+    if (subData?.newSubmission) {
+      console.log('🔔 Новый submission!', subData.newSubmission);
+      refetch();
+    }
+  }, [subData, refetch]);
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
@@ -146,6 +163,10 @@ export default function QuestPage() {
         <div>
           <h2 className="text-2xl font-black mb-8 flex items-center gap-3 bg-gradient-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
             🛡️ Доска Чести ({safeQuest.submissions.length})
+            <div className="flex items-center gap-1 text-emerald-400 text-sm ml-4">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span>LIVE</span>
+            </div>
           </h2>
           
           {safeQuest.submissions.length === 0 ? (
@@ -165,6 +186,7 @@ export default function QuestPage() {
                       </div>
                       <div>
                         <div className="font-bold text-slate-100">{sub.author.name}</div>
+                        <div className="text-xs text-slate-500">{new Date().toLocaleDateString()}</div>
                       </div>
                     </div>
                     <div className={`px-4 py-2 rounded-xl text-sm font-bold ${
