@@ -9,6 +9,7 @@ import { NEW_SUBMISSION_SUBSCRIPTION } from '@/features/submissions/api/newSubmi
 import SubmissionForm from '@/features/submissions/SubmissionForm';
 import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm';
 import { DELETE_SUBMISSION_MUTATION } from '@/features/submissions/api/deleteSubmission.mutation';
+import withAuth from '../../auth/withAuth';
 
 type User = { id: string; name: string };
 type Submission = { id: string; content: string; grade: number; feedback?: string; author: User };
@@ -26,7 +27,7 @@ type QuestQueryResponse = { quest: Quest };
 type MeQueryResponse = { me: User | null };
 type SubscriptionData = { newSubmission: Submission };
 
-export default function QuestPage() {
+function QuestPage() {
   const router = useRouter();
   const params = useParams();
   const questId = params.id as string;
@@ -291,3 +292,6 @@ export default function QuestPage() {
     </div>
   );
 }
+
+export default withAuth(QuestPage);
+

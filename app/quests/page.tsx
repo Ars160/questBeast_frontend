@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { QUESTS_QUERY } from '@/features/quests/api/quests.query';
 import Link from 'next/link';
+import withAuth from '../auth/withAuth';
 
 type Quest = {
   id: string;
@@ -23,7 +24,7 @@ type QuestsQueryResponse = {
   quests: Quest[];
 };
 
-export default function QuestsPage() {
+function QuestsPage() {
   const { data, loading, error } = useQuery<QuestsQueryResponse>(QUESTS_QUERY);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -133,3 +134,5 @@ export default function QuestsPage() {
     </div>
   );
 }
+
+export default withAuth(QuestsPage);

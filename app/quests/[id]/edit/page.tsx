@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { QUEST_QUERY } from '@/features/quests/api/quest.query';
 import { UPDATE_QUEST_MUTATION } from '@/features/quests/api/updateQuest.mutation';
 import { useEffect, useState } from 'react';
+import withAuth from '../../../auth/withAuth';
 
 type Quest = {
   id: string;
@@ -15,7 +16,7 @@ type Quest = {
 type QuestQueryResponse = { quest: Quest };
 type UpdateQuestResponse = { updateQuest: Quest };
 
-export default function EditQuestPage() {
+function EditQuestPage() {
   const params = useParams();
   const questId = params.id as string;
   const router = useRouter();
@@ -126,3 +127,5 @@ export default function EditQuestPage() {
     </div>
   );
 }
+
+export default withAuth(EditQuestPage);

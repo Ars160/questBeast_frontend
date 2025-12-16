@@ -4,8 +4,9 @@ import { useMutation } from '@apollo/client/react';
 import { useRef } from 'react'; 
 import { CREATE_QUEST_MUTATION } from '@/features/quests/api/createQuest.mutation';
 import { useRouter } from 'next/navigation';
+import withAuth from '../../auth/withAuth';
 
-export default function CreateQuestPage() {
+function CreateQuestPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null); // ✅ useRef для формы
 
@@ -183,3 +184,5 @@ export default function CreateQuestPage() {
     </div>
   );
 }
+
+export default withAuth(CreateQuestPage);

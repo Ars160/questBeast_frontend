@@ -6,8 +6,9 @@ import { ME_QUERY } from '@/features/auth/api/me.query';
 import { useAuthStore } from '@/shared/store/useAuthStore';
 import { client } from '@/shared/apollo/client';
 import { useRouter } from 'next/navigation';
+import withAuth from '../auth/withAuth';
 
-export default function ProfilePage() {
+function ProfilePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
@@ -32,9 +33,8 @@ export default function ProfilePage() {
         .query({ query: ME_QUERY, fetchPolicy: 'no-cache' })
         .then((res: any) => {
           if (res.data?.me) setUser(res.data.me);
-          else router.push('/auth/login');
         })
-        .catch(() => router.push('/auth/login'));
+        .catch(() => {});
     }
   }, [user, setUser, router]);
 
@@ -162,3 +162,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+export default withAuth(ProfilePage);
