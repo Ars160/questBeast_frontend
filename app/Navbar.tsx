@@ -26,6 +26,11 @@ export default function Navbar() {
           </Link>
           
           <div className="flex items-center gap-2">
+            {!user && (
+                <Link href="/leaderboard" className="px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/70 text-sm font-semibold text-slate-200 transition-all hover:scale-105">
+                  🏆 Лидерборд
+                </Link>
+            )}
             {user && token ? ( // ✅ проверяем ОБОЕ
               <>
                 <Link href="/quests" className="px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/70 text-sm font-semibold text-slate-200 transition-all hover:scale-105">
