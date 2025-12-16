@@ -1,36 +1,198 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QuestBeast: Игровая Платформа для Управления Квестами
 
-## Getting Started
+**QuestBeast** — это full-stack MERN-приложение, реализованное в виде игровой платформы. Пользователи могут выполнять квесты, зарабатывать очки и "прокачивать" своих уникальных монстров. Платформа поддерживает обновления в реальном времени для таблицы лидеров и отправки заданий.
 
-First, run the development server:
+### Тестовый пользователь
+-   **Email**: `hunter@questbeast.gg`
+-   **Пароль**: `password123`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Архитектура
+
+Проект использует классическую клиент-серверную архитектуру:
+
+-   **Бэкенд (`QuestBeast/`)**: Сервер на Node.js, использующий Express и Apollo Server для предоставления GraphQL API. Он обрабатывает всю бизнес-логику, взаимодействие с базой данных и аутентификацию.
+-   **Фронтенд (`client/`)**: Одностраничное приложение на Next.js (App Router), которое взаимодействует с GraphQL API. Отвечает за пользовательский интерфейс и состояние на стороне клиента.
+-   **База данных**: MongoDB хранит все данные приложения. Доступ к ней осуществляется с бэкенда через Mongoose.
+
+```
+[ Фронтенд (Next.js) ] <--- (GraphQL over HTTP/WebSocket) ---> [ Бэкенд (Node.js/Apollo) ] <--- (Mongoose) ---> [ MongoDB ]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Технологический стек
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Бэкенд (`QuestBeast/`)
+-   **Среда выполнения**: Node.js
+-   **Фреймворк**: Express.js
+-   **API**: GraphQL (с Apollo Server)
+-   **Real-time**: GraphQL Subscriptions (через `graphql-ws`)
+-   **База данных**: MongoDB
+-   **ODM**: Mongoose
+-   **Аутентификация**: JSON Web Tokens (JWT)
+-   **Хеширование паролей**: bcrypt
 
-## Learn More
+### Фронтенд (`client/`)
+-   **Фреймворк**: Next.js 14+ (с App Router)
+-   **Язык**: TypeScript
+-   **UI**: React
+-   **Работа с данными**: Apollo Client для GraphQL
+-   **Управление состоянием**: Zustand
+-   **Стилизация**: Tailwind CSS
+-   **Уведомления**: `react-hot-toast`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Основные возможности
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+-   **Аутентификация пользователей**: Безопасная регистрация и вход с использованием JWT.
+-   **Система геймификации**:
+    -   При регистрации пользователь получает личного "монстра".
+    -   Зарабатывает очки за отправку решений квестов и получение хороших оценок.
+    -   Очки влияют на уровень пользователя и эволюцию монстра (уровень, имя, стадия).
+-   **Управление квестами**: Авторизованные пользователи могут создавать, просматривать и обновлять квесты.
+-   **Отправка решений**: Пользователи могут отправлять свои работы по квестам, включая файлы.
+-   **Оценка решений**: Создатели квестов могут оценивать отправленные работы, начисляя баллы.
+-   **Таблица лидеров в реальном времени**: Живая таблица лидеров, обновляемая автоматически через GraphQL Subscriptions при изменении очков пользователей.
+-   **Отправка решений в реальном времени**: Уведомления о новых решениях на странице квеста, также работающие через GraphQL Subscriptions.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Детали Бэкенда (`QuestBeast/`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### GraphQL API
+Бэкенд предоставляет GraphQL API по адресу `http://localhost:4000/graphql`. Он поддерживает `Query`, `Mutation` и `Subscription`.
+
+**Примеры операций:**
+
+*   **Query (Запрос списка квестов):**
+    ```graphql
+    query GetQuests {
+      quests {
+        id
+        title
+        reward
+      }
+    }
+    ```
+
+*   **Mutation (Создание квеста):**
+    ```graphql
+    mutation CreateQuest($title: String!, $description: String!) {
+      createQuest(title: $title, description: $description, subject: "General", difficulty: 1, reward: 50) {
+        id
+        title
+      }
+    }
+    ```
+
+*   **Subscription (Подписка на новые решения):**
+    ```graphql
+    subscription OnNewSubmission($questId: ID!) {
+      newSubmission(questId: $questId) {
+        id
+        content
+        author {
+          name
+        }
+      }
+    }
+    ```
+---
+
+## Запуск проекта
+
+### Необходимые условия
+-   Node.js (v18.x или новее)
+-   Запущенный инстанс MongoDB (локально или в облаке, например, Atlas)
+
+### 1. Настройка Бэкенда (`QuestBeast/`)
+
+1.  Перейдите в директорию бэкенда:
+    ```bash
+    cd QuestBeast
+    ```
+2.  Создайте файл `.env` и добавьте в него переменные окружения:
+    ```env
+    MONGO_URI=your_mongodb_connection_string
+    JWT_SECRET=your_super_secret_jwt_key
+    PORT=4000
+    ```
+3.  Установите зависимости:
+    ```bash
+    npm install
+    ```
+4.  Запустите сервер:
+    ```bash
+    npm run dev
+    # Сервер будет доступен по адресу http://localhost:4000/graphql
+    ```
+
+### 2. Настройка Фронтенда (`client/`)
+
+1.  Перейдите в директорию фронтенда:
+    ```bash
+    cd ../client
+    ```
+2.  Установите зависимости:
+    ```bash
+    npm install
+    ```
+3.  Запустите сервер для разработки:
+    ```bash
+    npm run dev
+    # Приложение будет доступно по адресу http://localhost:3000
+    ```
+
+---
+
+## Скрипты NPM
+
+### `QuestBeast/` (Бэкенд)
+-   `npm run dev`: Запускает сервер для разработки с `ts-node`.
+-   `npm run build`: Компилирует TypeScript в JavaScript.
+-   `npm start`: Запускает скомпилированный сервер (для продакшена).
+-   `npm test`: Запускает Jest для выполнения автоматических тестов.
+
+### `client/` (Фронтенд)
+-   `npm run dev`: Запускает Next.js в режиме разработки.
+-   `npm run build`: Собирает приложение для продакшена.
+-   `npm start`: Запускает Next.js сервер для продакшена.
+
+---
+
+## Тестирование
+
+### Автоматические тесты (Бэкенд)
+Проект содержит интеграционные тесты для GraphQL резолверов. Они используют `mongodb-memory-server` для создания временной базы данных в памяти.
+
+Для запуска тестов выполните команду в директории `QuestBeast/`:
+```bash
+npm test
+```
+
+### Ручное тестирование Real-time функций
+
+#### 1. Тестирование обновления таблицы лидеров
+1.  Откройте два окна браузера.
+2.  **Окно 1**: Войдите в систему и перейдите на страницу "Таблица лидеров".
+3.  **Окно 2**: Войдите в систему под тем же пользователем, откройте любой квест и отправьте решение.
+4.  **Результат**: Вы должны увидеть, как ваша позиция или количество очков в "Таблице лидеров" (Окно 1) обновляется автоматически, без перезагрузки страницы.
+
+#### 2. Тестирование появления новых решений
+1.  Зарегистрируйте двух пользователей: `UserA` и `UserB`.
+2.  Откройте два окна браузера в режиме инкогнито, чтобы сессии не пересекались.
+3.  **Окно 1**: Войдите как `UserA`. Создайте новый квест и перейдите на его страницу.
+4.  **Окно 2**: Войдите как `UserB`. Найдите квест, созданный `UserA`, и перейдите на его страницу. Отправьте решение к этому квесту.
+5.  **Результат**: В Окне 1 (у `UserA`) новое решение от `UserB` должно появиться в списке отправленных решений мгновенно, без перезагрузки страницы.
+
+## Кто что сделал?
+1. Nurtilek: основную работу сделал на бэкенде и поднял на докер
+2. Arsen: основную работу сделал на фронтенде и писал тест на бэкенде
+
+## Репозиторий
+1. backend: https://github.com/Nukaaaaa/QuestBeast.git 
+2. frontend: https://github.com/Ars160/questBeast_frontend.git 
+
