@@ -77,50 +77,61 @@ function QuestsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredQuests.map((quest) => (
-            <Link key={quest.id} href={`/quests/${quest.id}`} className="group">
-              <div className="group-hover:scale-[1.02] transition-all duration-300 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.9)] hover:shadow-[0_25px_100px_rgba(16,185,129,0.3)] hover:border-emerald-400/50">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    quest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
-                    quest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
-                    'bg-red-500/20 text-red-400 border-red-500/50'
-                  } border`}>
-                    {quest.difficulty}/5
+          {filteredQuests.map((quest) => {
+            
+            const questDate = quest.createdAt 
+            ? new Date(Number(quest.createdAt))
+            : null;
+
+          const formattedDate = questDate && !isNaN(questDate.getTime())
+            ? questDate.toLocaleDateString()
+            : '—';
+
+            return (
+              <Link key={quest.id} href={`/quests/${quest.id}`} className="group">
+                <div className="group-hover:scale-[1.02] transition-all duration-300 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.9)] hover:shadow-[0_25px_100px_rgba(16,185,129,0.3)] hover:border-emerald-400/50">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      quest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
+                      quest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
+                      'bg-red-500/20 text-red-400 border-red-500/50'
+                    } border`}>
+                      {quest.difficulty}/5
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-black text-emerald-400">{quest.reward}</div>
+                      <div className="text-xs text-emerald-400/70 uppercase tracking-wide">XP</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-black text-emerald-400">{quest.reward}</div>
-                    <div className="text-xs text-emerald-400/70 uppercase tracking-wide">XP</div>
+                  <h2 className="text-xl font-black text-slate-100 mb-3 leading-tight group-hover:text-emerald-300 transition-colors">
+                    {quest.title}
+                  </h2>
+                  <p className="text-sm text-slate-300 mb-4 line-clamp-3 leading-relaxed">
+                    {quest.description}
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs font-mono text-slate-400 mb-4">
+                    <span className="w-2 h-2 bg-gradient-to-r from-purple-400 to-emerald-400 rounded-full"></span>
+                    {quest.subject}
                   </div>
-                </div>
-                <h2 className="text-xl font-black text-slate-100 mb-3 leading-tight group-hover:text-emerald-300 transition-colors">
-                  {quest.title}
-                </h2>
-                <p className="text-sm text-slate-300 mb-4 line-clamp-3 leading-relaxed">
-                  {quest.description}
-                </p>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs font-mono text-slate-400 mb-4">
-                  <span className="w-2 h-2 bg-gradient-to-r from-purple-400 to-emerald-400 rounded-full"></span>
-                  {quest.subject}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
-                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">👤</span>
-                  <span>{quest.creator.name}</span>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
-                  <span className="text-xs text-slate-500 uppercase tracking-wider font-mono">
-                    {new Date(quest.createdAt).toLocaleDateString()}
-                  </span>
-                  <div className="group-hover:translate-x-2 transition-transform duration-300">
-                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/80 to-emerald-600/80 text-slate-950 rounded-xl font-semibold text-sm shadow-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] backdrop-blur-sm">
-                      Принять квест
-                      <span className="text-lg">⚔️</span>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
+                    <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">👤</span>
+                    <span>{quest.creator.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
+                    <span className="text-xs text-slate-500 uppercase tracking-wider font-mono">
+                      {formattedDate}
                     </span>
+                    <div className="group-hover:translate-x-2 transition-transform duration-300">
+                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/80 to-emerald-600/80 text-slate-950 rounded-xl font-semibold text-sm shadow-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] backdrop-blur-sm">
+                        Принять квест
+                        <span className="text-lg">⚔️</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
 
         {filteredQuests.length === 0 && (
