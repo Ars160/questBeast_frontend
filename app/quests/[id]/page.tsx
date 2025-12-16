@@ -5,7 +5,7 @@ import { useQuery } from '@apollo/client/react';
 import { useParams, useRouter } from 'next/navigation';
 import { QUEST_QUERY } from '@/features/quests/api/quest.query';
 import SubmissionForm from '@/features/submissions/SubmissionForm';
-import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm'; // форма оценки
+import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm';
 
 type User = { id: string; name: string };
 type Submission = { id: string; content: string; grade: number; feedback?: string; author: User };
@@ -32,13 +32,33 @@ export default function QuestPage() {
 
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
-  if (loading) return <p>Loading quest...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  if (!data?.quest) return <p>Quest not found</p>;
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+      <div className="text-emerald-400 animate-pulse text-2xl flex items-center gap-2">
+        ⚔️ Загружаем древний свиток...
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+      <div className="max-w-md p-8 text-center text-red-400 backdrop-blur-xl rounded-3xl border border-red-500/30">
+        <span className="text-4xl mb-4 block">📜❌</span>
+        <h2 className="text-xl font-bold mb-2">Квест потерян во тьме</h2>
+        <p className="text-slate-400">{error.message}</p>
+      </div>
+    </div>
+  );
+  
+  if (!data?.quest) return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+      <div className="text-slate-400 text-xl">Квест не найден в архивах...</div>
+    </div>
+  );
 
   const { quest } = data;
 
-  // Приведение всех ID к строке, безопасно для TS
+  // Приведение всех ID к строке
   const safeQuest = {
     ...quest,
     id: String(quest.id),
@@ -56,54 +76,125 @@ export default function QuestPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 space-y-6">
-      <h1 className="text-2xl font-bold">{safeQuest.title}</h1>
-      <p>{safeQuest.description}</p>
-      <p>
-        <strong>Создатель:</strong> {safeQuest.creator.name} | <strong>Награда:</strong> {safeQuest.reward} pts
-      </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 py-12 px-4">
+      {/* Фоновая подсветка */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(16,185,129,0.15),_transparent_60%)]" />
 
-      {/* Кнопки */}
-      <div className="flex gap-4">
-        <button
-          onClick={() => setShowSubmissionForm((prev) => !prev)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          {showSubmissionForm ? 'Закрыть форму' : 'Добавить submission'}
-        </button>
-        <button
-          onClick={() => router.push(`/quests/${safeQuest.id}/edit`)}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Редактировать квест
-        </button>
-      </div>
-
-      {/* Форма для создания submission */}
-      {showSubmissionForm && (
-        <SubmissionForm questId={safeQuest.id} refreshSubmissions={() => refetch()} />
-      )}
-
-      {/* Список submissions */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Submissions</h2>
-        {safeQuest.submissions.length === 0 && <p>Нет отправок</p>}
-        {safeQuest.submissions.map((sub) => (
-          <div key={sub.id} className="border p-3 rounded mb-2">
-            <p>{sub.content}</p>
-            <p>
-              <strong>Автор:</strong> {sub.author.name} | <strong>Оценка:</strong> {sub.grade}
-            </p>
-
-            {/* Форма оценки */}
-            <GradeSubmissionForm
-              submissionId={sub.id}
-              currentGrade={sub.grade}
-              currentFeedback={sub.feedback || ''}
-              onGraded={() => refetch()}
-            />
+      <div className="relative z-10 max-w-4xl mx-auto">
+        {/* Заголовок квеста */}
+        <div className="text-center mb-12">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-r from-emerald-500/20 to-purple-500/20 ring-4 ring-emerald-500/50 shadow-[0_0_50px_rgba(16,185,129,0.6)]">
+            <span className="text-3xl">📜</span>
           </div>
-        ))}
+          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-slate-100 to-emerald-400 bg-clip-text text-transparent mb-3">
+            {safeQuest.title}
+          </h1>
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            {safeQuest.description}
+          </p>
+        </div>
+
+        {/* Инфо о квесте */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="md:col-span-2 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl">
+            <div className="flex flex-wrap gap-4 text-sm mb-6">
+              <div className={`px-4 py-2 rounded-xl font-mono font-bold ${
+                safeQuest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
+                safeQuest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' :
+                'bg-red-500/20 text-red-400 border-red-500/40'
+              } border`}>
+                Сложность {safeQuest.difficulty}/10
+              </div>
+              <div className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-xl font-mono font-bold border border-emerald-500/40">
+                Награда {safeQuest.reward} XP
+              </div>
+              <div className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-xl font-mono border border-purple-500/40">
+                {safeQuest.subject}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-slate-400">
+              <span className="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-bold">👤</span>
+              <span>Создатель: <span className="font-semibold text-slate-200">{safeQuest.creator.name}</span></span>
+            </div>
+          </div>
+          
+          {/* Кнопки действий */}
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowSubmissionForm((prev) => !prev)}
+              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 px-6 py-4 rounded-2xl font-bold shadow-[0_0_25px_rgba(16,185,129,0.6)] hover:shadow-[0_0_35px_rgba(16,185,129,0.8)] transition-all duration-300 hover:scale-[1.02]"
+            >
+              {showSubmissionForm ? '❌ Закрыть форму' : '⚔️ Принять вызов'}
+            </button>
+            <button
+              onClick={() => router.push(`/quests/${safeQuest.id}/edit`)}
+              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-slate-950 px-6 py-4 rounded-2xl font-bold shadow-[0_0_25px_rgba(168,85,247,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.8)] transition-all duration-300"
+            >
+              ✏️ Редактировать
+            </button>
+          </div>
+        </div>
+
+        {/* Форма для создания submission */}
+        {showSubmissionForm && (
+          <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/70 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.95)] mb-12">
+            <SubmissionForm questId={safeQuest.id} refreshSubmissions={() => refetch()} />
+          </div>
+        )}
+
+        {/* Список submissions */}
+        <div>
+          <h2 className="text-2xl font-black mb-8 flex items-center gap-3 bg-gradient-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
+            🛡️ Доска Чести ({safeQuest.submissions.length})
+          </h2>
+          
+          {safeQuest.submissions.length === 0 ? (
+            <div className="text-center py-16 rounded-3xl bg-slate-900/50 backdrop-blur-xl border-2 border-dashed border-slate-700/50">
+              <div className="text-6xl mb-6 opacity-40">🛡️</div>
+              <h3 className="text-xl font-semibold text-slate-400 mb-2">Никто ещё не принял вызов</h3>
+              <p className="text-slate-500">Будь первым героем!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {safeQuest.submissions.map((sub) => (
+                <div key={sub.id} className="group rounded-3xl border border-slate-800/50 bg-slate-900/70 p-6 backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-300">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-600 flex items-center justify-center shadow-lg">
+                        <span className="text-lg font-bold">🧙</span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-100">{sub.author.name}</div>
+                      </div>
+                    </div>
+                    <div className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                      sub.grade >= 8 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
+                      sub.grade >= 5 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
+                      'bg-red-500/20 text-red-400 border-red-500/50'
+                    } border`}>
+                      {sub.grade}/10
+                    </div>
+                  </div>
+                  
+                  <p className="text-slate-200 mb-4 whitespace-pre-wrap leading-relaxed">{sub.content}</p>
+                  
+                  {sub.feedback && (
+                    <div className="bg-gradient-to-r from-emerald-500/10 to-purple-500/10 p-4 rounded-2xl border border-emerald-500/30 mb-4">
+                      <p className="text-sm text-emerald-300 italic">«{sub.feedback}»</p>
+                    </div>
+                  )}
+
+                  <GradeSubmissionForm
+                    submissionId={sub.id}
+                    currentGrade={sub.grade}
+                    currentFeedback={sub.feedback || ''}
+                    onGraded={() => refetch()}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
