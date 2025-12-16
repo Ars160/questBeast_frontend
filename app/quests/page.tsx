@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { QUESTS_QUERY } from '@/features/quests/api/quests.query';
 import Link from 'next/link';
@@ -24,6 +25,7 @@ type QuestsQueryResponse = {
 
 export default function QuestsPage() {
   const { data, loading, error } = useQuery<QuestsQueryResponse>(QUESTS_QUERY);
+  const [searchTerm, setSearchTerm] = useState('');
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
@@ -41,13 +43,17 @@ export default function QuestsPage() {
 
   const quests = data?.quests || [];
 
+  // Фильтруем квесты по поисковому запросу
+  const filteredQuests = quests.filter(
+    (quest) =>
+      quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quest.subject.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 py-12 px-4">
-      {/* Фоновая подсветка */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(16,185,129,0.15),_transparent_60%)]" />
-
       <div className="relative z-10 max-w-4xl mx-auto">
-        {/* Заголовок */}
         <div className="text-center mb-12">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-500/20 ring-4 ring-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.6)]">
             <span className="text-2xl">📜</span>
@@ -56,15 +62,23 @@ export default function QuestsPage() {
             Книга Квестов
           </h1>
           <p className="mt-2 text-lg text-slate-400">Выбери задание и докажи свою силу</p>
+
+          {/* Поле поиска */}
+          <div className="mt-6">
+            <input
+              type="text"
+              placeholder="🔍 Поиск квестов по названию или предмету..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-2/3 lg:w-1/2 px-4 py-2 rounded-xl bg-slate-800/70 text-slate-50 placeholder-slate-400 border border-emerald-500/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
+            />
+          </div>
         </div>
 
-        {/* Сетка квестов */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {quests.map((quest) => (
+          {filteredQuests.map((quest) => (
             <Link key={quest.id} href={`/quests/${quest.id}`} className="group">
               <div className="group-hover:scale-[1.02] transition-all duration-300 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.9)] hover:shadow-[0_25px_100px_rgba(16,185,129,0.3)] hover:border-emerald-400/50">
-                
-                {/* Сложность */}
                 <div className="flex justify-between items-start mb-4">
                   <div className={`px-3 py-1 rounded-full text-xs font-bold ${
                     quest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
@@ -78,30 +92,20 @@ export default function QuestsPage() {
                     <div className="text-xs text-emerald-400/70 uppercase tracking-wide">XP</div>
                   </div>
                 </div>
-
-                {/* Название */}
                 <h2 className="text-xl font-black text-slate-100 mb-3 leading-tight group-hover:text-emerald-300 transition-colors">
                   {quest.title}
                 </h2>
-
-                {/* Описание */}
                 <p className="text-sm text-slate-300 mb-4 line-clamp-3 leading-relaxed">
                   {quest.description}
                 </p>
-
-                {/* Предмет */}
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-xl text-xs font-mono text-slate-400 mb-4">
                   <span className="w-2 h-2 bg-gradient-to-r from-purple-400 to-emerald-400 rounded-full"></span>
                   {quest.subject}
                 </div>
-
-                {/* Создатель */}
                 <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
                   <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">👤</span>
                   <span>{quest.creator.name}</span>
                 </div>
-
-                {/* Кнопка действия */}
                 <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
                   <span className="text-xs text-slate-500 uppercase tracking-wider font-mono">
                     {new Date(quest.createdAt).toLocaleDateString()}
@@ -118,11 +122,11 @@ export default function QuestsPage() {
           ))}
         </div>
 
-        {quests.length === 0 && (
+        {filteredQuests.length === 0 && (
           <div className="text-center py-20">
             <div className="text-6xl mb-6 opacity-30">📜</div>
-            <h2 className="text-2xl font-black text-slate-400 mb-4">Квесты ещё не созданы</h2>
-            <p className="text-slate-500 max-w-md mx-auto">Будь первым, кто проложит путь через неизведанные земли QuestBeast</p>
+            <h2 className="text-2xl font-black text-slate-400 mb-4">Квесты не найдены</h2>
+            <p className="text-slate-500 max-w-md mx-auto">Попробуй изменить поисковый запрос</p>
           </div>
         )}
       </div>

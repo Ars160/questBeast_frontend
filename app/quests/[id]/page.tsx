@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client/react';
+import { useQuery, useMutation, useSubscription } from '@apollo/client/react';
 import { useParams, useRouter } from 'next/navigation';
-import { useSubscription } from '@apollo/client/react';
 import { QUEST_QUERY } from '@/features/quests/api/quest.query';
-import { ME_QUERY } from '@/features/auth/api/me.query'; // ← ДОБАВЬ
+import { ME_QUERY } from '@/features/auth/api/me.query';
 import { NEW_SUBMISSION_SUBSCRIPTION } from '@/features/submissions/api/newSubmission.subscription';
 import SubmissionForm from '@/features/submissions/SubmissionForm';
 import GradeSubmissionForm from '@/features/submissions/GradeSubmissionForm';
+import { DELETE_SUBMISSION_MUTATION } from '@/features/submissions/api/deleteSubmission.mutation';
 
 type User = { id: string; name: string };
 type Submission = { id: string; content: string; grade: number; feedback?: string; author: User };
@@ -23,7 +23,7 @@ type Quest = {
   submissions: Submission[];
 };
 type QuestQueryResponse = { quest: Quest };
-type MeQueryResponse = { me: User | null }; // ← ДОБАВЬ
+type MeQueryResponse = { me: User | null };
 type SubscriptionData = { newSubmission: Submission };
 
 export default function QuestPage() {
@@ -35,18 +35,17 @@ export default function QuestPage() {
     variables: { id: questId },
   });
 
-  // ✅ ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
   const { data: meData } = useQuery<MeQueryResponse>(ME_QUERY);
 
-  // ✅ LIVE SUBSCRIPTION
   const { data: subData } = useSubscription<SubscriptionData>(NEW_SUBMISSION_SUBSCRIPTION, {
     variables: { questId },
     skip: !questId,
   });
 
+  const [deleteSubmission, { loading: deleting }] = useMutation(DELETE_SUBMISSION_MUTATION);
+
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
-  // ✅ Автообновление при новом submission
   useEffect(() => {
     if (subData?.newSubmission) {
       console.log('🔔 Новый submission!', subData.newSubmission);
@@ -54,38 +53,42 @@ export default function QuestPage() {
     }
   }, [subData, refetch]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="text-emerald-400 animate-pulse text-2xl flex items-center gap-2">
-        ⚔️ Загружаем древний свиток...
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="text-emerald-400 animate-pulse text-2xl flex items-center gap-2">
+          ⚔️ Загружаем древний свиток...
+        </div>
       </div>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="max-w-md p-8 text-center text-red-400 backdrop-blur-xl rounded-3xl border border-red-500/30">
-        <span className="text-4xl mb-4 block">📜❌</span>
-        <h2 className="text-xl font-bold mb-2">Квест потерян во тьме</h2>
-        <p className="text-slate-400">{error.message}</p>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="max-w-md p-8 text-center text-red-400 backdrop-blur-xl rounded-3xl border border-red-500/30">
+          <span className="text-4xl mb-4 block">📜❌</span>
+          <h2 className="text-xl font-bold mb-2">Квест потерян во тьме</h2>
+          <p className="text-slate-400">{error.message}</p>
+        </div>
       </div>
-    </div>
-  );
-  
-  if (!questData?.quest) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
-      <div className="text-slate-400 text-xl">Квест не найден в архивах...</div>
-    </div>
-  );
+    );
+  }
+
+  if (!questData?.quest) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 flex items-center justify-center">
+        <div className="text-slate-400 text-xl">Квест не найден в архивах...</div>
+      </div>
+    );
+  }
 
   const { quest } = questData;
   const currentUser = meData?.me;
 
-  // ✅ ПРОВЕРКА ВЛАДЕЛЬЦА
   const isOwner = currentUser?.id === quest.creator.id;
 
-  // Приведение всех ID к строке
-  const safeQuest = {
+  const safeQuest: Quest = {
     ...quest,
     id: String(quest.id),
     submissions:
@@ -99,6 +102,18 @@ export default function QuestPage() {
             id: typeof sub.author.id === 'string' ? sub.author.id : String(sub.author.id),
           },
         })) || [],
+  };
+
+  const canDelete = (sub: Submission) =>
+    currentUser && sub.author.id === currentUser.id;
+
+  const handleDelete = async (submissionId: string) => {
+    try {
+      await deleteSubmission({ variables: { id: submissionId } });
+      await refetch();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -124,11 +139,15 @@ export default function QuestPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="md:col-span-2 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl">
             <div className="flex flex-wrap gap-4 text-sm mb-6">
-              <div className={`px-4 py-2 rounded-xl font-mono font-bold ${
-                safeQuest.difficulty <= 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
-                safeQuest.difficulty <= 6 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' :
-                'bg-red-500/20 text-red-400 border-red-500/50'
-              } border`}>
+              <div
+                className={`px-4 py-2 rounded-xl font-mono font-bold ${
+                  safeQuest.difficulty <= 3
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                    : safeQuest.difficulty <= 6
+                    ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
+                    : 'bg-red-500/20 text-red-400 border-red-500/50'
+                } border`}
+              >
                 Сложность {safeQuest.difficulty}/5
               </div>
               <div className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-xl font-mono font-bold border border-emerald-500/40">
@@ -139,11 +158,16 @@ export default function QuestPage() {
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm text-slate-400">
-              <span className="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-bold">👤</span>
-              <span>Создатель: <span className="font-semibold text-slate-200">{safeQuest.creator.name}</span></span>
+              <span className="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-bold">
+                👤
+              </span>
+              <span>
+                Создатель:{' '}
+                <span className="font-semibold text-slate-200">{safeQuest.creator.name}</span>
+              </span>
             </div>
           </div>
-          
+
           {/* КНОПКИ ДЕЙСТВИЙ — ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА */}
           <div className="space-y-4">
             <button
@@ -152,8 +176,7 @@ export default function QuestPage() {
             >
               {showSubmissionForm ? '❌ Закрыть форму' : '⚔️ Принять вызов'}
             </button>
-            
-            {/* ✅ КНОПКА ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА */}
+
             {isOwner && (
               <button
                 onClick={() => router.push(`/quests/${safeQuest.id}/edit`)}
@@ -181,7 +204,7 @@ export default function QuestPage() {
               <span>LIVE</span>
             </div>
           </h2>
-          
+
           {safeQuest.submissions.length === 0 ? (
             <div className="text-center py-16 rounded-3xl bg-slate-900/50 backdrop-blur-xl border-2 border-dashed border-slate-700/50">
               <div className="text-6xl mb-6 opacity-40">🛡️</div>
@@ -191,7 +214,10 @@ export default function QuestPage() {
           ) : (
             <div className="space-y-4">
               {safeQuest.submissions.map((sub) => (
-                <div key={sub.id} className="group rounded-3xl border border-slate-800/50 bg-slate-900/70 p-6 backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-300">
+                <div
+                  key={sub.id}
+                  className="group rounded-3xl border border-slate-800/50 bg-slate-900/70 p-6 backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-300"
+                >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-600 flex items-center justify-center shadow-lg">
@@ -202,29 +228,60 @@ export default function QuestPage() {
                         <div className="text-xs text-slate-500">{new Date().toLocaleDateString()}</div>
                       </div>
                     </div>
-                    <div className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                      sub.grade >= 8 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
-                      sub.grade >= 5 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
-                      'bg-red-500/20 text-red-400 border-red-500/50'
-                    } border`}>
-                      {sub.grade}/5
+                    <div
+                      className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                        sub.grade >= 8
+                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
+                          : sub.grade >= 5
+                          ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50'
+                          : 'bg-red-500/20 text-red-400 border-red-500/50'
+                      } border`}
+                    >
+                      {sub.grade}/10
                     </div>
                   </div>
-                  
-                  <p className="text-slate-200 mb-4 whitespace-pre-wrap leading-relaxed">{sub.content}</p>
-                  
+
+                  <p className="text-slate-200 mb-4 whitespace-pre-wrap leading-relaxed">
+                    {sub.content}
+                  </p>
+
                   {sub.feedback && (
                     <div className="bg-gradient-to-r from-emerald-500/10 to-purple-500/10 p-4 rounded-2xl border border-emerald-500/30 mb-4">
                       <p className="text-sm text-emerald-300 italic">«{sub.feedback}»</p>
                     </div>
                   )}
 
-                  <GradeSubmissionForm
-                    submissionId={sub.id}
-                    currentGrade={sub.grade}
-                    currentFeedback={sub.feedback || ''}
-                    onGraded={() => refetch()}
-                  />
+                  {/* Изменить + Удалить сабмишн */}
+                 <div className="mt-3 w-full flex flex-col gap-3">
+  <GradeSubmissionForm
+    submissionId={sub.id}
+    currentGrade={sub.grade}
+    currentFeedback={sub.feedback || ''}
+    onGraded={() => refetch()}
+  />
+
+  {canDelete(sub) && (
+    <button
+      disabled={deleting}
+      onClick={() => handleDelete(sub.id)}
+      className="
+        w-full h-11
+        flex items-center justify-center gap-2
+        rounded-2xl
+        bg-red-500/10 text-red-300
+        border border-red-500/30
+        hover:bg-red-500/20 hover:border-red-400
+        disabled:opacity-50 disabled:cursor-not-allowed
+        transition-all duration-200
+      "
+    >
+      <span className="text-base">🗑</span>
+      <span className="font-medium">Удалить </span>
+    </button>
+  )}
+</div>
+
+
                 </div>
               ))}
             </div>
