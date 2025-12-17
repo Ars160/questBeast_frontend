@@ -25,7 +25,7 @@ export default function GradeSubmissionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (grade < 0 || grade > 10) { // ✅ 0-10 по схеме
+    if (grade < 0 || grade > 10) { 
       alert('Оценка от 0 до 10');
       return;
     }
@@ -53,7 +53,6 @@ export default function GradeSubmissionForm({
 
   return (
     <div className="mt-4 p-6 rounded-3xl border border-slate-800/50 bg-gradient-to-r from-slate-900/80 to-slate-950/80 backdrop-blur-xl shadow-lg hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] transition-all">
-      {/* Текущая оценка */}
       {!isEditing ? (
         <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-2xl">
           <div className={`px-4 py-2 rounded-xl font-bold text-sm border ${getGradeColor(grade)}`}>

@@ -1,4 +1,3 @@
-// features/users/api/leaderboard.query.ts
 import { gql } from '@apollo/client';
 
 export const LEADERBOARD_QUERY = gql`

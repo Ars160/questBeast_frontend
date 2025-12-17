@@ -18,15 +18,12 @@ type LeaderboardResponse = { leaderboard: LeaderboardItem[] };
 type LeaderboardUpdatedPayload = { leaderboardUpdated: boolean };
 
 export default function LeaderboardPage() {
-  // Основной запрос
   const { data, loading, error, refetch } = useQuery<LeaderboardResponse>(LEADERBOARD_QUERY);
 
-  // Подписка — только триггер, без данных
   const { data: subscriptionData } = useSubscription<LeaderboardUpdatedPayload>(
     LEADERBOARD_SUBSCRIPTION
   );
 
-  // Когда пришёл сигнал — обновляем данные
   if (subscriptionData?.leaderboardUpdated) {
     refetch();
   }
@@ -59,11 +56,9 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 py-12 px-4">
-      {/* Фоновая подсветка */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_10%,_rgba(16,185,129,0.2),_transparent_60%)]" />
 
       <div className="relative z-10 max-w-4xl mx-auto">
-        {/* Заголовок */}
         <div className="text-center mb-12">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-500/20 ring-4 ring-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.6)]">
             <span className="text-2xl">🏆</span>
@@ -80,7 +75,6 @@ export default function LeaderboardPage() {
           </p>
         </div>
 
-        {/* Таблица лидеров */}
         <div className="bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-emerald-500/20 shadow-[0_25px_100px_rgba(15,23,42,0.95)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -156,7 +150,6 @@ export default function LeaderboardPage() {
             </table>
           </div>
 
-          {/* Подпись о live-обновлениях */}
           <div className="px-6 py-4 bg-gradient-to-r from-emerald-500/5 to-emerald-600/5 border-t border-emerald-500/20">
             <p className="text-center text-xs text-emerald-400 font-mono">
               🔴 Live • Обновляется в реальном времени
@@ -164,7 +157,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Статистика снизу */}
         <div className="mt-8 text-center text-sm text-slate-500">
           Всего бойцов: <span className="font-mono text-emerald-400">{leaderboard.length}</span>
         </div>

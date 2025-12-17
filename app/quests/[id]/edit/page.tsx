@@ -35,7 +35,6 @@ function EditQuestPage() {
     }
   );
 
-  // Инициализируем state, когда пришёл квест
   useEffect(() => {
     if (data?.quest) {
       setTitle(data.quest.title);

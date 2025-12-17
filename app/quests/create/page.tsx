@@ -8,7 +8,7 @@ import withAuth from '../../auth/withAuth';
 
 function CreateQuestPage() {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null); // ✅ useRef для формы
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [createQuest, { loading }] = useMutation(CREATE_QUEST_MUTATION, {
     onCompleted: () => router.push('/quests'),
@@ -44,7 +44,6 @@ function CreateQuestPage() {
     });
   };
 
-  // ✅ Функция синхронизации слайдера
   const syncSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formRef.current) {
       const difficultyInput = formRef.current.elements.namedItem('difficulty') as HTMLInputElement;
@@ -121,7 +120,7 @@ function CreateQuestPage() {
                   min="1"
                   max="5"
                   defaultValue="5"
-                  onInput={syncSlider} // ✅ Теперь работает!
+                  onInput={syncSlider}
                   className="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400"
                 />
                 <input

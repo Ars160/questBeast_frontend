@@ -14,11 +14,10 @@ function ProfilePage() {
   const setUser = useAuthStore((s) => s.setUser);
   const logout = useAuthStore((s) => s.logout);
 
-  // Логика выбора монстра по очкам
   const getMonsterIcon = (points: number) => {
-    if (points > 1000) return '🐉';  // Dragon
-    if (points > 100) return '👹';   // Orc
-    return '🧌';                     // Goblin
+    if (points > 1000) return '🐉';  
+    if (points > 100) return '👹';  
+    return '🧌';                    
   };
 
   const getMonsterName = (points: number) => {
@@ -48,11 +47,9 @@ function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 flex items-center justify-center px-4 py-12">
-      {/* Фоновая подсветка */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_20%,_rgba(16,185,129,0.15),_transparent_60%)]" />
 
       <div className="relative z-10 w-full max-w-2xl">
-        {/* Заголовок профиля */}
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 ring-4 ring-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.5)]">
             <span className="text-3xl">👤</span>
@@ -63,9 +60,7 @@ function ProfilePage() {
           <p className="mt-1 text-sm text-slate-400">Воин QuestBeast</p>
         </div>
 
-        {/* Основная карточка профиля */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Статистика */}
           <div className="rounded-3xl border border-emerald-500/20 bg-slate-900/70 px-8 py-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.9)]">
             <h2 className="text-lg font-semibold text-emerald-400 mb-6 flex items-center">
               <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
@@ -96,7 +91,6 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* Монстр */}
           {monster ? (
             <div className="rounded-3xl border border-purple-500/20 bg-slate-900/70 px-8 py-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.9)]">
               <h2 className="text-lg font-semibold text-purple-400 mb-6 flex items-center">
@@ -144,7 +138,6 @@ function ProfilePage() {
           )}
         </div>
 
-        {/* Кнопка выхода */}
         <div className="mt-12 text-center">
           <button
             onClick={() => {

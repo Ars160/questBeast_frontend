@@ -119,11 +119,9 @@ function QuestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 py-12 px-4">
-      {/* Фоновая подсветка */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(16,185,129,0.15),_transparent_60%)]" />
 
       <div className="relative z-10 max-w-4xl mx-auto">
-        {/* Заголовок квеста */}
         <div className="text-center mb-12">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-r from-emerald-500/20 to-purple-500/20 ring-4 ring-emerald-500/50 shadow-[0_0_50px_rgba(16,185,129,0.6)]">
             <span className="text-3xl">📜</span>
@@ -136,7 +134,6 @@ function QuestPage() {
           </p>
         </div>
 
-        {/* Инфо о квесте */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="md:col-span-2 rounded-3xl border border-emerald-500/20 bg-slate-900/70 p-8 backdrop-blur-xl">
             <div className="flex flex-wrap gap-4 text-sm mb-6">
@@ -169,7 +166,6 @@ function QuestPage() {
             </div>
           </div>
 
-          {/* КНОПКИ ДЕЙСТВИЙ — ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА */}
           <div className="space-y-4">
             <button
               onClick={() => setShowSubmissionForm((prev) => !prev)}
@@ -189,14 +185,12 @@ function QuestPage() {
           </div>
         </div>
 
-        {/* Форма для создания submission */}
         {showSubmissionForm && (
           <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/70 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(15,23,42,0.95)] mb-12">
             <SubmissionForm questId={safeQuest.id} refreshSubmissions={() => refetch()} />
           </div>
         )}
 
-        {/* Список submissions */}
         <div>
           <h2 className="text-2xl font-black mb-8 flex items-center gap-3 bg-gradient-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
             🛡️ Доска Чести ({safeQuest.submissions.length})
@@ -252,7 +246,6 @@ function QuestPage() {
                     </div>
                   )}
 
-                  {/* Изменить + Удалить сабмишн */}
                  <div className="mt-3 w-full flex flex-col gap-3">
   <GradeSubmissionForm
     submissionId={sub.id}

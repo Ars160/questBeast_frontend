@@ -8,7 +8,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50">
-      {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.3),transparent_50%)]" />
         <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
@@ -42,23 +41,19 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Статистика (если авторизован) */}
       {user && (
         <div className="max-w-6xl mx-auto px-4 py-20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Очки */}
             <div className="text-center p-8 rounded-3xl bg-gradient-to-b from-slate-900/70 to-slate-950/50 backdrop-blur-xl border border-emerald-500/20 shadow-2xl">
               <div className="text-4xl font-black text-emerald-400 mb-2">{user.points}</div>
               <div className="text-sm text-emerald-300 uppercase tracking-wide font-bold">Очков XP</div>
             </div>
             
-            {/* Уровень */}
             <div className="text-center p-8 rounded-3xl bg-gradient-to-b from-slate-900/70 to-slate-950/50 backdrop-blur-xl border border-purple-500/20 shadow-2xl">
               <div className="text-4xl font-black text-purple-400 mb-2">{user.level}</div>
               <div className="text-sm text-purple-300 uppercase tracking-wide font-bold">Уровень</div>
             </div>
             
-            {/* Быстрые действия */}
             <div className="p-8 rounded-3xl bg-gradient-to-r from-emerald-500/10 to-purple-500/10 backdrop-blur-xl border border-emerald-500/30 shadow-2xl">
               <h3 className="text-lg font-bold text-emerald-300 mb-6">Твои действия</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">

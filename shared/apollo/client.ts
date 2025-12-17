@@ -5,12 +5,13 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import { getToken } from '@/shared/store/useAuthStore';
 
-// HTTP link для queries и mutations
+const httpUri = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql';
+const wsUri = process.env.NEXT_PUBLIC_GRAPHQL_WS_URL || 'ws://localhost:4000/graphql';
+
 const httpLink = new HttpLink({ 
-  uri: 'http://localhost:4000/graphql' 
+  uri: httpUri 
 });
 
-// Auth link для HTTP запросов
 const authLink = setContext((_, { headers }) => {
   const token = getToken();
   return { 
@@ -21,10 +22,9 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-// WebSocket link для subscriptions
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: 'ws://localhost:4000/graphql',
+    url: wsUri,
     connectionParams: () => {
       const token = getToken();
       return {
@@ -34,7 +34,6 @@ const wsLink = new GraphQLWsLink(
   })
 );
 
-// Split link: WebSocket для subscriptions, HTTP для остального
 const splitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -43,8 +42,8 @@ const splitLink = split(
       definition.operation === 'subscription'
     );
   },
-  wsLink, // ✅ subscriptions идут через WebSocket
-  authLink.concat(httpLink) // ✅ queries/mutations через HTTP
+  wsLink, 
+  authLink.concat(httpLink) 
 );
 
 export const client = new ApolloClient({

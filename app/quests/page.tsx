@@ -44,7 +44,6 @@ function QuestsPage() {
 
   const quests = data?.quests || [];
 
-  // Фильтруем квесты по поисковому запросу
   const filteredQuests = quests.filter(
     (quest) =>
       quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,7 +63,6 @@ function QuestsPage() {
           </h1>
           <p className="mt-2 text-lg text-slate-400">Выбери задание и докажи свою силу</p>
 
-          {/* Поле поиска */}
           <div className="mt-6">
             <input
               type="text"

@@ -1,4 +1,3 @@
-// features/submissions/api/gradeSubmission.mutation.ts
 import { gql } from '@apollo/client';
 
 export const GRADE_SUBMISSION_MUTATION = gql`

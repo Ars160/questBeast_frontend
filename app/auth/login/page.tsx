@@ -6,6 +6,7 @@ import { ME_QUERY } from '@/features/auth/api/me.query';
 import { useAuthStore } from '@/shared/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { client } from '@/shared/apollo/client';
+import { useState } from 'react';
 
 type LoginResponse = { login: string };
 type LoginVariables = { email: string; password: string };
@@ -15,12 +16,16 @@ export default function LoginPage() {
   const router = useRouter();
   const setToken = useAuthStore((s) => s.setToken);
   const setUser = useAuthStore((s) => s.setUser);
+  const [formError, setFormError] = useState<string | null>(null); 
 
   const [login, { loading }] = useMutation<LoginResponse, LoginVariables>(
     LOGIN_MUTATION,
     {
       onCompleted: async (data) => {
-        if (!data.login) return;
+        if (!data.login) {
+          setFormError('Неизвестная ошибка входа. Пожалуйста, попробуйте еще раз.');
+          return;
+        }
 
         setToken(data.login);
 
@@ -32,18 +37,22 @@ export default function LoginPage() {
         setUser(res.data?.me);
         router.push('/');
       },
+      onError: (error) => {
+        setFormError(error.message);
+      },
     }
   );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError(null); 
     const form = e.currentTarget;
 
     const email = (form.elements.namedItem('email') as HTMLInputElement)?.value.trim();
     const password = (form.elements.namedItem('password') as HTMLInputElement)?.value;
 
     if (!email || !password) {
-      alert('Email и пароль обязательны');
+      setFormError('Email и пароль обязательны для входа.'); 
       return;
     }
 
@@ -52,11 +61,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900/40 text-slate-50 flex items-center justify-center px-4">
-      {/* Светящееся пятно за карточкой */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.25),_transparent_55%)]" />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Лого / название */}
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 ring-2 ring-emerald-500/60 shadow-[0_0_40px_rgba(16,185,129,0.6)]">
             <span className="text-2xl">🐲</span>
@@ -70,9 +77,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Карточка логина */}
         <div className="rounded-2xl border border-emerald-500/20 bg-slate-900/60 px-6 py-7 shadow-[0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {formError && (
+              <p className="text-red-400 text-sm text-center">{formError}</p>
+            )}
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
@@ -118,7 +127,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Кнопка регистрации */}
           <div className="mt-6 pt-5 border-t border-slate-800">
             <p className="text-center text-xs text-slate-400 mb-3">
               Нет аккаунта? Создай своего зверя!

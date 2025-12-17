@@ -7,13 +7,12 @@ import { useEffect } from 'react';
 export default function Navbar() {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
-  const hydrate = useAuthStore((s) => s.hydrate); // ✅ твой метод гидратации
+  const hydrate = useAuthStore((s) => s.hydrate);
   const logout = useAuthStore((s) => s.logout); 
 
-  // ✅ Гидратируем при монтировании
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      hydrate(); // восстанавливает token/user из localStorage
+      hydrate(); 
     }
   }, [hydrate]);
 
@@ -31,7 +30,7 @@ export default function Navbar() {
                   🏆 Лидерборд
                 </Link>
             )}
-            {user && token ? ( // ✅ проверяем ОБОЕ
+            {user && token ? ( 
               <>
                 <Link href="/quests" className="px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/70 text-sm font-semibold text-slate-200 transition-all hover:scale-105">
                   📜 Квесты

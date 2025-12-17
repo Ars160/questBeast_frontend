@@ -6,7 +6,7 @@ type AuthState = {
   setToken: (token: string) => void;
   setUser: (user: any) => void;
   logout: () => void;
-  hydrate: () => void; // ✅ Добавляем!
+  hydrate: () => void; 
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -14,19 +14,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   setToken: (token) => {
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(get().user)); // ✅ Сохраняем user тоже
+    localStorage.setItem('user', JSON.stringify(get().user));
     set({ token });
   },
   setUser: (user) => {
-    localStorage.setItem('user', JSON.stringify(user)); // ✅ Сохраняем в localStorage
+    localStorage.setItem('user', JSON.stringify(user)); 
     set({ user });
   },
   logout: () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user'); // ✅ Чистим user тоже
+    localStorage.removeItem('user'); 
     set({ token: null, user: null });
   },
-  // ✅ Гидратация — восстанавливает из localStorage
   hydrate: () => {
     if (typeof window === 'undefined') return;
     

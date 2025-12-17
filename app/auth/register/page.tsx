@@ -25,11 +25,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-purple-900/40 text-slate-50 flex items-center justify-center px-4">
-      {/* Светящееся пятно */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(168,85,247,0.25),_transparent_55%)]" />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Лого */}
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.6)]">
             <span className="text-2xl">⚔️</span>
@@ -43,7 +41,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Карточка регистрации */}
         <div className="rounded-2xl border border-purple-500/20 bg-slate-900/60 px-6 py-7 shadow-[0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
@@ -98,7 +95,6 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          {/* Кнопка возврата на логин */}
           <div className="mt-6 pt-5 border-t border-slate-800">
             <p className="text-center text-xs text-slate-400 mb-3">
               Уже есть аккаунт?
